@@ -1,0 +1,25 @@
+name: Build Tweak
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: macos-latest # استخدام ماك سحابي لضمان نجاح بناء تويك الـ iOS
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Install Theos
+      run: |
+        bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+        echo "THEOS=~/theos" >> $GITHUB_ENV
+        echo "~/theos/bin" >> $GITHUB_PATH
+
+    - name: Build Dylib
+      run: |
+        make OBJDIR=.
+        
+    - name: Upload Dylib Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: CodebySMSTweak-Dylib
+        path: ./*.dylib
