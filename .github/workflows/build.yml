@@ -1,0 +1,24 @@
+name: Build Fast Tweak
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Theos Environment
+      run: |
+        git clone --recursive https://github.com/theos/theos.git ~/theos
+        
+    - name: Compile Dylib For iOS
+      run: |
+        # استخدام مترجم Clang المدمج مباشرة لإنتاج ملف dylib متوافق مع معمارية الآيفون الحديثة
+        clang -dynamiclib -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch arm64 -framework Foundation Tweak.xm -o CodebySMSTweak.dylib
+        
+    - name: Upload Finished Dylib
+      uses: actions/upload-artifact@v4
+      with:
+        name: Ready-Dylib
+        path: ./CodebySMSTweak.dylib
