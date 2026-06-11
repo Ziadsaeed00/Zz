@@ -1,0 +1,24 @@
+name: Build official Tweak
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Theos Environment
+      run: |
+        git clone --recursive https://github.com/theos/theos.git ~/theos
+        
+    - name: Build Tweak via Theos
+      run: |
+        export THEOS=~/theos
+        make package OBJDIR=. TARGET=iphone:clang:latest:14.0 ARCHS=arm64
+        
+    - name: Upload Finished Dylib
+      uses: actions/upload-artifact@v4
+      with:
+        name: Ready-Dylib
+        path: ./*.dylib
