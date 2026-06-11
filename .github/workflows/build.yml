@@ -1,0 +1,38 @@
+name: Build Tweak
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-13
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        brew install ldid xz
+
+    - name: Setup Theos
+      run: |
+        git clone --recursive https://github.com/theos/theos.git $HOME/theos
+        git clone https://github.com/theos/sdks.git $HOME/theos/sdks
+
+    - name: Compile Tweak
+      run: |
+        export THEOS=$HOME/theos
+        make package FINALPACKAGE=1
+
+    # خطوة ذكية لنقل ملف الـ dylib إلى المجلد الرئيسي لضمان العثور عليه
+    - name: Locate and Move Dylib
+      run: |
+        find . -name "*.dylib" -exec cp {} . \;
+        ls -la
+
+    - name: Upload Dylib Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: My-Bypass-Dylib
+        path: "./*.dylib" # سيقوم برفع أي ملف دايليب تم نسخه في المجلد الرئيسي فوراً
