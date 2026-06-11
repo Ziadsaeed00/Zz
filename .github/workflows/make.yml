@@ -1,0 +1,37 @@
+name: Build AdBypassTweak
+
+on:
+  workflow_dispatch: # يتيح لك تشغيل التجميع يدوياً بضغطة زر من موقع GitHub
+
+jobs:
+  build:
+    runs-on: macos-13 # استخدام سيرفر ماك لتجميع كود iOS بشكل صحيح
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install System Dependencies
+      run: |
+        brew install ldid xz
+        echo "SDK_VERSION=16.5" >> $GITHUB_ENV
+
+    - name: Setup Theos environment
+      run: |
+        git clone --recursive https://github.com/theos/theos.git $HOME/theos
+        echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+        
+    - name: Setup iOS SDK
+      run: |
+        git clone https://github.com/theos/sdks.git $HOME/theos/sdks
+        
+    - name: Compile Tweak to Dylib
+      run: |
+        export THEOS=$HOME/theos
+        make package FINALPACKAGE=1
+        
+    - name: Upload Dylib Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AdBypassTweak-Dylib
+        path: .theos/obj/debug/AdBypassTweak.dylib
