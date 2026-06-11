@@ -1,0 +1,42 @@
+name: Build Tweak
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y fakeroot build-essential perl clang git unzip
+
+    - name: Setup Theos
+      run: |
+        git clone --recursive https://github.com/theos/theos.git ~/theos
+        echo "THEOS=~/theos" >> $GITHUB_ENV
+        echo "~/theos/bin" >> $GITHUB_PATH
+
+    - name: Download iOS SDK
+      run: |
+        mkdir -p ~/theos/sdks
+        curl -L -o ~/theos/sdks/sdk.zip https://github.com/theos/sdks/archive/refs/heads/master.zip
+        unzip ~/theos/sdks/sdk.zip -d ~/theos/sdks/
+        mv ~/theos/sdks/sdks-master/*.sdk ~/theos/sdks/ 2>/dev/null || true
+        rm -rf ~/theos/sdks/sdks-master ~/theos/sdks/sdk.zip
+
+    - name: Build Dylib
+      run: |
+        export THEOS=~/theos
+        export PATH=~/theos/bin:$PATH
+        make OBJDIR=. TARGET=iphone:clang:latest:14.5
+        
+    - name: Upload Dylib
+      uses: actions/upload-artifact@v4
+      with:
+        name: CodebySMSTweak-Final
+        path: |
+          ./*.dylib
+          ./.theos/obj/*.dylib
