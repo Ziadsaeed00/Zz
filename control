@@ -1,8 +1,0 @@
-Package: com.zeyad.codebysmstweak
-Name: CodebySMSTweak
-Depends: mobilesubstrate
-Version: 1.0
-Architecture: iphoneos-arm
-Description: Points Redirect Tweak
-Maintainer: Zeyad
-Author: Zeyad
