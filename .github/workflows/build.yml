@@ -1,0 +1,40 @@
+name: Build Tweak
+
+on:
+  workflow_dispatch: # يتيح لك تشغيل التجميع يدوياً بضغطة زر
+
+jobs:
+  build:
+    runs-on: macos-latest # استخدام أحدث بيئة مستقرة لتفادي مشاكل التوافق
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        brew install ldid xz
+
+    - name: Setup Theos
+      run: |
+        git clone --recursive https://github.com/theos/theos.git $HOME/theos
+        # حذف المجلد الافتراضي لمنع تعارض الـ Git الحاصل سابقاً
+        rm -rf $HOME/theos/sdks
+        git clone https://github.com/theos/sdks.git $HOME/theos/sdks
+
+    - name: Compile Tweak
+      run: |
+        export THEOS=$HOME/theos
+        make package FINALPACKAGE=1
+
+    # خطوة ديناميكية لنسخ ملف الدايليب للمجلد الرئيسي لضمان العثور عليه مهما كان مسار التجميع
+    - name: Locate and Move Dylib
+      run: |
+        find . -name "*.dylib" -exec cp {} . \;
+        ls -la
+
+    - name: Upload Dylib Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: My-Bypass-Dylib
+        path: "./*.dylib" # سيقوم برفع أي ملف dylib تم إنتاجه فوراً
